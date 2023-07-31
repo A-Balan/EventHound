@@ -66,7 +66,18 @@ const events = [
 
 // accessed the global const events
 function getEvents() {
-    return events;
+    // try to get whatever's there, but 1st time you visit pg, there will be nothing there, so use []
+    let storedString = localStorage.getItem('ab-events') || '[]';
+
+    // you put stored string into a normal format from JSON
+    let storedEvents = JSON.parse(storedString);
+
+    // if you got empty array you reassign it to the constatnt array of events
+    if (storedEvents.length == 0) {
+        storedEvents = events;
+        localStorage.setItem('ab-events', JSON.stringify(events));
+    }
+    return storedEvents;
 }
 
 function buildDropDown() {
@@ -80,6 +91,10 @@ function buildDropDown() {
 
     const dropdownDiv = document.getElementById('city-dropdown');
     const dropdownItemTemplate = document.getElementById('dropdown-template');
+
+    // clear it out so the drop bar doesnt duplicate
+    dropdownDiv.innerHTML = '';
+
     // with each unique city
     dropdownChoices.forEach(choice => {
         //  copy the dropdown template;
@@ -91,6 +106,8 @@ function buildDropDown() {
         dropdownDiv.appendChild(dropdownItemCopy);
     });
     // get return and display it from the controller function
+
+    document.getElementById('stats-location').textContent = 'All';
     displayEvents(currentEvents);
     displayStats(currentEvents);
 }
@@ -116,8 +133,8 @@ function displayEvents(events) {
         // can write it like above or shorten like below-if don't want to name
         tableRow.querySelector('[data-id=city]').innerText = event.city;
         tableRow.querySelector('[data-id=state]').innerText = event.state;
-        tableRow.querySelector('[data-id=attendance]').innerText = event.attendance;
-        tableRow.querySelector('[data-id=date]').innerText = event.date;
+        tableRow.querySelector('[data-id=attendance]').innerText = event.attendance.toLocaleString();
+        tableRow.querySelector('[data-id=date]').innerText = new Date(event.date).toLocaleDateString();
         // insert the event data into the table
         eventsTable.appendChild(tableRow);
     }
@@ -155,4 +172,63 @@ function displayStats(events) {
     document.getElementById('avg-attendance').innerHTML = Math.round(average).toLocaleString();
     document.getElementById('max-attended').innerHTML = max.toLocaleString();
     document.getElementById('min-attended').innerHTML = min.toLocaleString();
+}
+
+function filterEvents(dropdownItemClicked) {
+    let cityName = dropdownItemClicked.innerText;
+    document.getElementById('stats-location').textContent = cityName;
+
+    let allEvents = getEvents();
+    let filteredEvents = [];
+
+    if (cityName == 'All') {
+
+        filteredEvents = allEvents;
+
+    } else {
+
+        for (let i = 0; i < allEvents.length; i++) {
+            let event = allEvents[i];
+
+            if (event.city == cityName) {
+                filteredEvents.push(event);
+            }
+        }
+    }
+
+    displayStats(filteredEvents);
+    displayEvents(filteredEvents);
+}
+
+function saveEvent() {
+    let eventName = document.getElementById('eventName').value;
+    let city = document.getElementById('city').value;
+
+    let stateSelect = document.getElementById('newEventState');
+    let selectedIndex = stateSelect.selectedIndex;
+    let selectedOption = stateSelect.options[selectedIndex];
+    let state = selectedOption.text;
+
+    let attendance = parseInt(document.getElementById('attendance').value);
+    let dateString = document.getElementById('eventDate').value;
+    dateString = `${dateString} 00:00`;
+    let eventDate = new Date(dateString).toLocaleDateString();
+
+    let newEvent = {
+        event: eventName,
+        city: city,
+        state: state,
+        attendance: attendance,
+        date: eventDate,
+    };
+
+    let allEvents = getEvents();
+    allEvents.push(newEvent);
+
+    localStorage.setItem('ab-events', JSON.stringify(allEvents));
+
+    document.getElementById('newEventForm').reset();
+
+    buildDropDown();
+
 }
