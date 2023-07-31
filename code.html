@@ -69,245 +69,266 @@
                 <pre class="line-numbers">
                     <code class="language-js">
                         const events = [
-    {
-        event: "ComicCon",
-        city: "New York",
-        state: "New York",
-        attendance: 240000,
-        date: "06/01/2017",
-    },
-    {
-        event: "ComicCon",
-        city: "New York",
-        state: "New York",
-        attendance: 250000,
-        date: "06/01/2018",
-    },
-    {
-        event: "ComicCon",
-        city: "New York",
-        state: "New York",
-        attendance: 257000,
-        date: "06/01/2019",
-    },
-    {
-        event: "ComicCon",
-        city: "San Diego",
-        state: "California",
-        attendance: 130000,
-        date: "06/01/2017",
-    },
-    {
-        event: "ComicCon",
-        city: "San Diego",
-        state: "California",
-        attendance: 140000,
-        date: "06/01/2018",
-    },
-    {
-        event: "ComicCon",
-        city: "San Diego",
-        state: "California",
-        attendance: 150000,
-        date: "06/01/2019",
-    },
-    {
-        event: "HeroesCon",
-        city: "Charlotte",
-        state: "North Carolina",
-        attendance: 40000,
-        date: "06/01/2017",
-    },
-    {
-        event: "HeroesCon",
-        city: "Charlotte",
-        state: "North Carolina",
-        attendance: 45000,
-        date: "06/01/2018",
-    },
-    {
-        event: "HeroesCon",
-        city: "Charlotte",
-        state: "North Carolina",
-        attendance: 50000,
-        date: "06/01/2019",
-    },
-];
-
-// accessed the global const events
-function getEvents() {
-    // try to get whatever's there, but 1st time you visit pg, there will be nothing there, so use []
-    let storedString = localStorage.getItem('ab-events') || '[]';
-
-    // you put stored string into a normal format from JSON
-    let storedEvents = JSON.parse(storedString);
-
-    // if you got empty array you reassign it to the constatnt array of events
-    if (storedEvents.length == 0) {
-        storedEvents = events;
-        localStorage.setItem('ab-events', JSON.stringify(events));
-    }
-    return storedEvents;
-}
-
-function buildDropDown() {
-    // get the current events
-    let currentEvents = getEvents();
-    // get a list of unique cities
-    let eventCities = currentEvents.map(event => event.city);
-    let distinctCities = new Set(eventCities);
-    // turned the set into an array
-    let dropdownChoices = ['All', ...distinctCities];
-
-    const dropdownDiv = document.getElementById('city-dropdown');
-    const dropdownItemTemplate = document.getElementById('dropdown-template');
-
-    // clear it out so the drop bar doesnt duplicate
-    dropdownDiv.innerHTML = '';
-
-    // with each unique city
-    dropdownChoices.forEach(choice => {
-        //  copy the dropdown template;
-        let dropdownItemCopy = dropdownItemTemplate.content.cloneNode(true);
-        // -chage the copy's text
-        let aTag = dropdownItemCopy.querySelector('a');
-        aTag.innerText = choice;
-        // put it in the dropdown
-        dropdownDiv.appendChild(dropdownItemCopy);
-    });
-    // get return and display it from the controller function
-
-    document.getElementById('stats-location').textContent = 'All';
-    displayEvents(currentEvents);
-    displayStats(currentEvents);
-}
-
-function displayEvents(events) {
-    // find the table on the page
-    const eventsTable = document.getElementById('events-table');
-    // find the table row template
-    const eventTemplate = document.getElementById('table-row-template');
-    // clear out the table
-    eventsTable.innerHTML = '';
-
-    // for each event:
-    for (let index = 0; index < events.length; index++) {
-        // get one event
-        let event = events[index];
-        // clone the template
-        let tableRow = eventTemplate.content.cloneNode(true);
-        // get each property of an event
-        // insert each property into the cloned template
-        let eventNameCell = tableRow.querySelector('[data-id="event"]');
-        eventNameCell.innerText = event.event;
-        // can write it like above or shorten like below-if don't want to name
-        tableRow.querySelector('[data-id=city]').innerText = event.city;
-        tableRow.querySelector('[data-id=state]').innerText = event.state;
-        tableRow.querySelector('[data-id=attendance]').innerText = event.attendance.toLocaleString();
-        tableRow.querySelector('[data-id=date]').innerText = new Date(event.date).toLocaleDateString();
-        // insert the event data into the table
-        eventsTable.appendChild(tableRow);
-    }
-    /*
-    event: "comicon",
-    city: "New York",
-    state: "New York",
-    attendance: "240000",
-    date:05/05/23
-    */
-}
-
-function displayStats(events) {
-    let total = 0;
-    let max = 0;
-    let min = events[0].attendance;
-
-    for (let index = 0; index < events.length; index++) {
-        let event = events[index];
-
-        total = total + event.attendance;
-
-        if (event.attendance > max) {
-            max = event.attendance;
-        }
-
-        if (event.attendance < min) {
-            min = event.attendance;
-        }
-    }
-
-    let average = total / events.length;
-
-    document.getElementById('total-attendance').innerHTML = total.toLocaleString();
-    document.getElementById('avg-attendance').innerHTML = Math.round(average).toLocaleString();
-    document.getElementById('max-attended').innerHTML = max.toLocaleString();
-    document.getElementById('min-attended').innerHTML = min.toLocaleString();
-}
-
-function filterEvents(dropdownItemClicked) {
-    let cityName = dropdownItemClicked.innerText;
-    document.getElementById('stats-location').textContent = cityName;
-
-    let allEvents = getEvents();
-    let filteredEvents = [];
-
-    if (cityName == 'All') {
-
-        filteredEvents = allEvents;
-
-    } else {
-
-        for (let i = 0; i < allEvents.length; i++) {
-            let event = allEvents[i];
-
-            if (event.city == cityName) {
-                filteredEvents.push(event);
-            }
-        }
-    }
-
-    displayStats(filteredEvents);
-    displayEvents(filteredEvents);
-}
-
-function saveEvent() {
-    let eventName = document.getElementById('eventName').value;
-    let city = document.getElementById('city').value;
-
-    let stateSelect = document.getElementById('newEventState');
-    let selectedIndex = stateSelect.selectedIndex;
-    let selectedOption = stateSelect.options[selectedIndex];
-    let state = selectedOption.text;
-
-    let attendance = parseInt(document.getElementById('attendance').value);
-    let dateString = document.getElementById('eventDate').value;
-    dateString = `${dateString} 00:00`;
-    let eventDate = new Date(dateString).toLocaleDateString();
-
-    let newEvent = {
-        event: eventName,
-        city: city,
-        state: state,
-        attendance: attendance,
-        date: eventDate,
-    };
-
-    let allEvents = getEvents();
-    allEvents.push(newEvent);
-
-    localStorage.setItem('ab-events', JSON.stringify(allEvents));
-
-    document.getElementById('newEventForm').reset();
-
-    buildDropDown();
-
-}
+                        {
+                            event: "ComicCon",
+                            city: "New York",
+                            state: "New York",
+                            attendance: 240000,
+                            date: "06/01/2017",
+                        },
+                        {
+                            event: "ComicCon",
+                            city: "New York",
+                            state: "New York",
+                            attendance: 250000,
+                            date: "06/01/2018",
+                        },
+                        {
+                            event: "ComicCon",
+                            city: "New York",
+                            state: "New York",
+                            attendance: 257000,
+                            date: "06/01/2019",
+                        },
+                        {
+                            event: "ComicCon",
+                            city: "San Diego",
+                            state: "California",
+                            attendance: 130000,
+                            date: "06/01/2017",
+                        },
+                        {
+                            event: "ComicCon",
+                            city: "San Diego",
+                            state: "California",
+                            attendance: 140000,
+                            date: "06/01/2018",
+                        },
+                        {
+                            event: "ComicCon",
+                            city: "San Diego",
+                            state: "California",
+                            attendance: 150000,
+                            date: "06/01/2019",
+                        },
+                        {
+                            event: "HeroesCon",
+                            city: "Charlotte",
+                            state: "North Carolina",
+                            attendance: 40000,
+                            date: "06/01/2017",
+                        },
+                        {
+                            event: "HeroesCon",
+                            city: "Charlotte",
+                            state: "North Carolina",
+                            attendance: 45000,
+                            date: "06/01/2018",
+                        },
+                        {
+                            event: "HeroesCon",
+                            city: "Charlotte",
+                            state: "North Carolina",
+                            attendance: 50000,
+                            date: "06/01/2019",
+                        },
+                    ];
+                    
+                    // accessed the global const events
+                    function getEvents() {
+                        // try to get whatever's there, but 1st time you visit pg, there will be nothing there, so use []
+                        let storedString = localStorage.getItem('ab-events') || '[]';
+                    
+                        // you put stored string into a normal format from JSON
+                        let storedEvents = JSON.parse(storedString);
+                    
+                        // if you got empty array you reassign it to the constatnt array of events
+                        if (storedEvents.length == 0) {
+                            storedEvents = events;
+                            localStorage.setItem('ab-events', JSON.stringify(events));
+                        }
+                        return storedEvents;
+                    }
+                    
+                    function buildDropDown() {
+                        // get the current events
+                        let currentEvents = getEvents();
+                        // get a list of unique cities
+                        let eventCities = currentEvents.map(event => event.city);
+                        let distinctCities = new Set(eventCities);
+                        // turned the set into an array
+                        let dropdownChoices = ['All', ...distinctCities];
+                    
+                        const dropdownDiv = document.getElementById('city-dropdown');
+                        const dropdownItemTemplate = document.getElementById('dropdown-template');
+                    
+                        // clear it out so the drop bar doesnt duplicate
+                        dropdownDiv.innerHTML = '';
+                    
+                        // with each unique city
+                        dropdownChoices.forEach(choice => {
+                            //  copy the dropdown template;
+                            let dropdownItemCopy = dropdownItemTemplate.content.cloneNode(true);
+                            // -chage the copy's text
+                            let aTag = dropdownItemCopy.querySelector('a');
+                            aTag.innerText = choice;
+                            // put it in the dropdown
+                            dropdownDiv.appendChild(dropdownItemCopy);
+                        });
+                        // get return and display it from the controller function
+                    
+                        document.getElementById('stats-location').textContent = 'All';
+                        displayEvents(currentEvents);
+                        displayStats(currentEvents);
+                    }
+                    
+                    function displayEvents(events) {
+                        // find the table on the page
+                        const eventsTable = document.getElementById('events-table');
+                        // find the table row template
+                        const eventTemplate = document.getElementById('table-row-template');
+                        // clear out the table
+                        eventsTable.innerHTML = '';
+                    
+                        // for each event:
+                        for (let index = 0; index < events.length; index++) {
+                            // get one event
+                            let event = events[index];
+                            // clone the template
+                            let tableRow = eventTemplate.content.cloneNode(true);
+                            // get each property of an event
+                            // insert each property into the cloned template
+                            let eventNameCell = tableRow.querySelector('[data-id="event"]');
+                            eventNameCell.innerText = event.event;
+                            // can write it like above or shorten like below-if don't want to name
+                            tableRow.querySelector('[data-id=city]').innerText = event.city;
+                            tableRow.querySelector('[data-id=state]').innerText = event.state;
+                            tableRow.querySelector('[data-id=attendance]').innerText = event.attendance.toLocaleString();
+                            tableRow.querySelector('[data-id=date]').innerText = new Date(event.date).toLocaleDateString();
+                            // insert the event data into the table
+                            eventsTable.appendChild(tableRow);
+                        }
+                        /*
+                        event: "comicon",
+                        city: "New York",
+                        state: "New York",
+                        attendance: "240000",
+                        date:05/05/23
+                        */
+                    }
+                    
+                    function displayStats(events) {
+                        let total = 0;
+                        let max = 0;
+                        let min = events[0].attendance;
+                    
+                        for (let index = 0; index < events.length; index++) {
+                            let event = events[index];
+                    
+                            total = total + event.attendance;
+                    
+                            if (event.attendance > max) {
+                                max = event.attendance;
+                            }
+                    
+                            if (event.attendance < min) {
+                                min = event.attendance;
+                            }
+                        }
+                    
+                        let average = total / events.length;
+                    
+                        document.getElementById('total-attendance').innerHTML = total.toLocaleString();
+                        document.getElementById('avg-attendance').innerHTML = Math.round(average).toLocaleString();
+                        document.getElementById('max-attended').innerHTML = max.toLocaleString();
+                        document.getElementById('min-attended').innerHTML = min.toLocaleString();
+                    }
+                    
+                    function filterEvents(dropdownItemClicked) {
+                        let cityName = dropdownItemClicked.innerText;
+                        document.getElementById('stats-location').textContent = cityName;
+                    
+                        let allEvents = getEvents();
+                        let filteredEvents = [];
+                    
+                        if (cityName == 'All') {
+                    
+                            filteredEvents = allEvents;
+                    
+                        } else {
+                    
+                            for (let i = 0; i < allEvents.length; i++) {
+                                let event = allEvents[i];
+                    
+                                if (event.city == cityName) {
+                                    filteredEvents.push(event);
+                                }
+                            }
+                        }
+                    
+                        displayStats(filteredEvents);
+                        displayEvents(filteredEvents);
+                    }
+                    
+                    function saveEvent() {
+                        let eventName = document.getElementById('eventName').value;
+                        let city = document.getElementById('city').value;
+                    
+                        let stateSelect = document.getElementById('newEventState');
+                        let selectedIndex = stateSelect.selectedIndex;
+                        let selectedOption = stateSelect.options[selectedIndex];
+                        let state = selectedOption.text;
+                    
+                        let attendance = parseInt(document.getElementById('attendance').value);
+                        let dateString = document.getElementById('eventDate').value;
+                        dateString = `${dateString} 00:00`;
+                        let eventDate = new Date(dateString).toLocaleDateString();
+                    
+                        let newEvent = {
+                            event: eventName,
+                            city: city,
+                            state: state,
+                            attendance: attendance,
+                            date: eventDate,
+                        };
+                    
+                        let allEvents = getEvents();
+                        allEvents.push(newEvent);
+                    
+                        localStorage.setItem('ab-events', JSON.stringify(allEvents));
+                    
+                        document.getElementById('newEventForm').reset();
+                    
+                        buildDropDown();
+                    
+                        let modal = bootstrap.Modal.getInstance(document.getElementById('modalForm'));
+                        modal.hide();
+                    
                     </code>
                 </pre>
             </div>
             <div class="col-12 col-md-4">
                 <h5>Walkthrough</h5>
-               <li></li>
+                <h6>getEvents()</h6>
+               <li>Some initial events are set to const and accessed with getEvents()</li>
+               <li>initially there will be no events '[]', which we reassign to the const events</li>
+               <li>the events that get added have to be parsed from JSON into a useable format</li>
+               <h6>buildDropDown()</h6>
+               <li>the dropdown includes the const cities list, as well as any new cities that are added by the user, when they fill out the form</li>
+               <li>the dropdown row is cloned for each city entry and appended to the dropdown list</li>
+               <li>The option for "All" is added to the dropdown array and given a value by ID</li>
+               <h6>displayEvents(events)</h6>
+               <li>Events are displayed in a table; the table rows are cloned for each event</li>
+               <li>The cells of data are targeteed by class, and populated with properties of each event</li>
+               <h6>displayStats(events)</h6>
+               <li>A for loop is used to find the following statistics about attendance: sum, max, min, average</li>
+               <h6>filterEvents(dropdownItemClicked)</h6>
+               <li>the cities in the dropdown are filtered, to delete duplicates</li>
+               <h6>saveEvent()</h6>
+               <li>The values are saved to local storage</li>
+               <li>New events are retrieved and saved as an object</li>
+               <li>The form closes on submit</li>
+               
             </div>
         </div>
     </main>

@@ -168,7 +168,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         
-            <form id="newEventForm" onsubmit="saveEvent()">
+            <form id="newEventForm">
                 <div class="modal-body">
                 <div>
                   <label for="eventName" class="form-label mb-0">Event Name</label>
@@ -269,6 +269,14 @@
 
     <!-- custom JS -->
     <script src="/js/site.js"></script>
+
+    <script>
+        let form = document.getElementById('modalForm');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            saveEvent();
+        });
+    </script>
 
 </body>
 

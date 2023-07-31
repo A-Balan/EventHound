@@ -231,4 +231,7 @@ function saveEvent() {
 
     buildDropDown();
 
+    let modal = bootstrap.Modal.getInstance(document.getElementById('modalForm'));
+    modal.hide();
+
 }
