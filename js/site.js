@@ -235,3 +235,31 @@ function saveEvent() {
     modal.hide();
 
 }
+function copyToClipboard() {
+    // Copy the text inside the text field
+    navigator.clipboard.writeText("abalan0326@gmail.com");
+}
+
+function showClipboardMessage() {
+    // Swal.fire({
+    //     text: "abalan0326@gmail.com",
+    //     confirmButtonText: "Copy"
+    // }).then(function (result) {
+    //     copyToClipboard();
+    // });
+
+    Swal.fire({
+        html: '<br />abalan0326@gmail.com ',
+        showCloseButton: true,
+        focusConfirm: false,
+        confirmButtonText: '<i class="bi bi-clipboard"></i> Copy',
+    }).then(function (result) {
+        copyToClipboard();
+
+        if (result.value === true) {
+            Swal.fire({
+                html: "<br />Copied to Clipboard!"
+            })
+        }
+    })
+}
